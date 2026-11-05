@@ -8,15 +8,21 @@ estado de cada fase están en [PLAN.md](PLAN.md).
 
 ## Requisitos
 
-- Docker (para PostgreSQL con pgvector).
-- Python 3.12 recomendado (la 3.14 no está verificada con mem0 ni LlamaIndex).
-- Costo cero: el diseño usa modelos locales o niveles gratuitos (ver PLAN.md, sección 3).
+- Git.
+- Docker Desktop para PostgreSQL con pgvector (en Windows usa WSL2; su consumo de RAM no está medido).
+  Si Docker no corre bien en tu PC, el plan B está en PLAN.md, sección 9, fila "Docker Desktop pesado" (sin verificar).
+- Python 3.12: con la que se desarrolla y corre el CI; ninguna otra versión está probada (la 3.14 no está verificada con mem0 ni LlamaIndex).
+- Ollama para los modelos locales: se documenta en F1, cuando exista el adaptador de proveedor.
+- Costo cero: el diseño usa modelos locales o niveles gratuitos (ver PLAN.md, sección 3). Los proveedores
+  en nube solo reciben los datos falsos de `fixtures/` (regla D10).
 
 ## Arranque de la base de datos
 
-1. Copia `.env.example` a `.env` y define `POSTGRES_PASSWORD` (el archivo `.env` no se sube al repo).
+1. Copia `.env.example` a `.env` (PowerShell: `Copy-Item .env.example .env`; bash: `cp .env.example .env`) y define
+   `POSTGRES_PASSWORD`, sin caracteres `$` ni comillas. El archivo `.env` no se sube al repo.
 2. `docker compose up -d`
 3. `docker compose exec db psql -U gabinete -d gabinete -c "\dx"` debe listar la extensión `vector`.
+4. Para apagarla: `docker compose stop`. No se reinicia sola al abrir Docker Desktop.
 
 ## Datos de prueba
 

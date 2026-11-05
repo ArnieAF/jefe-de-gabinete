@@ -5,5 +5,5 @@ name = "gabinete"
 version = "0.0.0"
 description = "Jefe de Gabinete Personal: agente de IA con MCP, RAG, memoria y evals"
 readme = "README.md"
-requires-python = ">=3.11"
+requires-python = ">=3.12"
 dependencies = []

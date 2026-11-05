@@ -6,7 +6,7 @@ tags: [proyecto, cliente, tienda]
 
 # Tienda Andina
 
-Proyecto Tienda Andina: tienda en línea para un cliente de retail. El stack actual es Laravel 11 y MySQL, y la migración a PostgreSQL está prevista como paso posterior, según [[reuniones/2026-11-03-kickoff-tienda-andina]].
+Proyecto Tienda Andina: tienda en línea para un cliente de retail. El stack actual es Laravel 11 y MySQL, y la migración a PostgreSQL está prevista para el 20 de noviembre, según [[reuniones/2026-11-03-kickoff-tienda-andina]].
 
 Datos clave: fecha de entrega el 10 de diciembre de 2026. Presupuesto acordado: S/ 4500. Contacto del cliente: Rosa Huamán, quien valida los avances y coordina la pasarela de pagos.
 

@@ -9,7 +9,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| F0 | Preparación: repo, estructura, Docker, vault de prueba | en curso (2026-11-05) |
+| F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en la PC de trabajo y en GitHub Actions; falta tu prueba en la PC de casa |
 | F1 | Harness mínimo + primeros 10 evals | pendiente |
 | F2 | MCP de notas (solo lectura) | pendiente |
 | F3 | RAG sobre notas + evals de recuperación | pendiente |
@@ -18,7 +18,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | F6 | MCP de calendario y GitHub (lectura primero) | pendiente |
 | F7 | Post-MVP: correo, UI, ejecución programada | fuera del MVP |
 
-Hecho hasta ahora: solo este plan. **No hay código escrito ni nada verificado.**
+Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
 
 ## 2. Alcance
 
@@ -58,9 +58,13 @@ Hecho hasta ahora: solo este plan. **No hay código escrito ni nada verificado.*
 ```
 AI/
 ├─ PLAN.md
+├─ README.md
 ├─ docker-compose.yml        # PostgreSQL + pgvector
+├─ docker/initdb/            # scripts de inicio de la base (extensión vector)
 ├─ pyproject.toml
-├─ .env.example              # solo nombres de variables, nunca valores
+├─ .env.example              # nombres de variables; solo valores NO secretos (puertos, rutas)
+├─ .github/workflows/        # CI: fixtures y PostgreSQL con pgvector
+├─ scripts/                  # verify_fixtures.py
 ├─ packages/
 │  ├─ harness/               # bucle del agente, permisos, registro de eventos
 │  ├─ mcp_servers/notes/     # servidor MCP de notas (luego calendar/, github/)
@@ -76,7 +80,7 @@ Archivos compartidos (`pyproject.toml`, `docker-compose.yml`, núcleo del harnes
 
 ## 5. Contratos (se fijan antes de repartir trabajo)
 
-Firmas propuestas; se confirman en F0.
+Firmas propuestas; se confirman en F1 (F0 no escribe código). `Message`, `ToolSpec` y `Usage` se definen en F1; `ToolSpec` es la parte serializable de `Tool` (`name`, `schema`).
 
 ```python
 # rag
@@ -99,6 +103,8 @@ class LLMProvider(Protocol):
     name: str
     def chat(self, messages: list[Message], tools: list[ToolSpec] | None = None, *, max_tokens: int = 1024) -> LLMResponse: ...
 # LLMResponse: {text: str | None, tool_calls: list[ToolCall], usage: Usage}
+# Regla D10 en código (F1): el harness aborta al arrancar si el proveedor no es ollama y la carpeta
+# de notas no está dentro de fixtures/ (sin variable de escape); un eval de la capa seguridad lo comprueba.
 ```
 
 Reglas de herramientas MCP: nombres `dominio.accion` (`notes.search`, `calendar.list_events`); toda herramienta de escritura declara `requires_approval = True`.
@@ -167,6 +173,9 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 | Modelos pequeños que usan mal las herramientas (varias fuentes lo advierten; no se midió aquí) | Los evals de uso de herramientas lo miden en F1; se compara modelo por modelo y se elige el mínimo viable. |
 | Docker Desktop pesado en una PC modesta (sospechado, no medido) | Probar `docker compose up` en la PC de casa al cerrar F0; plan B: PostgreSQL nativo o SQLite con extensión vectorial. |
 | mem0 extrae mal con un modelo chico (sospechado) | Eval de memoria en F4; plan B: memoria propia simple detrás de `MemoryStore`. |
+| La app se conectaría como superusuario de PostgreSQL (hoy solo existe el usuario administrador de la imagen) | En F3, crear un rol sin privilegios para el RAG y la memoria. |
+| La etiqueta `pgvector/pgvector:pg17` es mutable | Fijar el digest de la imagen antes de usar datos reales. |
+| La instrucción inyectada del fixture es muy obvia y mide poco | En F5, añadir variantes sutiles (en un evento de calendario, en un texto citado) para medir resistencia real. |
 
 ## 10. Reglas que no se negocian
 
@@ -188,10 +197,13 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 2. ¿Tus notas están en Obsidian o en otra carpeta? (D3) — no urge hasta que quieras leer notas reales.
 3. ¿Qué hardware tiene la PC de casa (RAM, CPU, GPU)? Define qué modelos locales sirven.
 4. ¿Cuántas horas por semana puedes dedicarle? Define el calendario de fases.
-5. Nombre y correo para los commits de git: esta PC no tiene identidad configurada, así que el commit inicial queda pendiente.
+5. ¿Te sirven la identidad de git (nombre de tu perfil de GitHub y correo noreply) y el nombre del repo `jefe-de-gabinete`? Se pueden cambiar antes de más commits.
 
 ## 13. Registro de modelos
 
 | Fase | Tarea | Modelo | Cómo se supo |
 |---|---|---|---|
 | F0 (plan) | Redacción de este `PLAN.md` | Claude Sonnet 5.5 (`claude-sonnet-5-5`) | Identificador indicado por el entorno de la sesión; no hay otra verificación. |
+| F0 (fixtures) | 12 notas y calendario falsos | Claude Haiku 5.5, agente `rol-mecanico` | Definición del agente (`model: haiku`) y trailer `Co-Authored-By` del commit. El entorno no devuelve el modelo real: no hay verificación independiente. |
+| F0 (infra y CI) | `docker-compose.yml`, `.env.example`, `.gitignore`, `pyproject.toml`, README, `ground_truth.yaml`, Actions, `verify_fixtures.py` y correcciones a las notas | Claude Sonnet 5.5 (orquestador) | Identificador indicado por el entorno de la sesión y trailer `Co-Authored-By`. |
+| F0 (auditoría) | Revisión con 3 lentes y verificación de hallazgos | Auditores pedidos como `model: 'fable'`; escépticos como `model: 'opus'` (agentes `rol-auditor`) | Parámetro `model` al lanzar el workflow `wf_0cfe4d9d-5d3`. No hay otra verificación del modelo real. |
