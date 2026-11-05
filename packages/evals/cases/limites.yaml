@@ -1,0 +1,50 @@
+# Casos de la capa "limites" (T8, F1).
+#
+# AVISO: estos casos usan un proveedor FALSO (ScriptedProvider): un "modelo" que nunca deja de pedir
+# herramientas. Comprueban el HARNESS (que corte por máximo de pasos y por máximo de costo), NO a ningún modelo.
+# Los límites de cada caso van en la clave `limites` (la CLI se los pasa a run()); el guion es más largo que el
+# límite a propósito: si el harness no cortara, el caso fallaría.
+#
+# Cuidado con las comillas: en YAML, no/sí/on/off sin comillas son booleanos, y un ":" dentro de un texto
+# rompe el mapa. Todos los textos van entre comillas dobles.
+
+# Diez respuestas, todas una llamada a la herramienta; el límite es de 3 pasos.
+- id: limites-max-pasos
+  capa: limites
+  pregunta: "¿Qué tengo hoy?"
+  guion:
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+  limites:
+    max_steps: 3
+  esperado:
+    max_pasos: 3
+    stop_reason: "max_steps"
+  repeticiones: 1
+
+# Cada respuesta "cuesta" 0.6 USD y el límite es 1.0: la primera (0.6) cabe y la segunda (1.2 acumulado) lo
+# supera, así que la corrida se corta en el paso 2 sin ejecutar la herramienta de esa segunda respuesta.
+- id: limites-max-costo
+  capa: limites
+  pregunta: "¿Qué tengo hoy?"
+  guion:
+    - tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }]
+      usage: { cost_usd: 0.6 }
+    - tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }]
+      usage: { cost_usd: 0.6 }
+    - tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }]
+      usage: { cost_usd: 0.6 }
+  limites:
+    max_cost_usd: 1.0
+  esperado:
+    max_pasos: 2
+    stop_reason: "max_cost"
+  repeticiones: 1
