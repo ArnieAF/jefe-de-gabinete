@@ -44,7 +44,8 @@ class RunResult:    answer: str | None; trajectory: list[ToolCall]; steps: int; 
 
 def run(task: str, session_id: str, *, provider: LLMProvider, tools: list[Tool],
         approve: Callable[[ToolCall], bool] = deny_all, max_steps: int = 8,
-        max_cost_usd: float = 0.0, log_dir: Path | None = None) -> RunResult: ...
+        max_cost_usd: float = 0.0, log_dir: Path | str | None = None,
+        system_prompt: str | None = None) -> RunResult: ...
 ```
 
 Formato de un caso de eval con proveedor falso (extiende el de PLAN sección 5):
@@ -67,7 +68,7 @@ Formato de un caso de eval con proveedor falso (extiende el de PLAN sección 5):
 - **Importación:** sin instalar nada. pytest usa `pythonpath` (ya configurado en `pyproject.toml`) y `python -m gabinete_evals` se ejecuta con
   `$env:PYTHONPATH = "packages/harness;packages/evals"` (PowerShell).
 - **Módulos, para que las tareas no choquen:** `gabinete_harness/types.py` (T1, con `deny_all` y `allow_all`), `providers/scripted.py` (T2),
-  `tools/registry.py` y `tools/toy.py` (T3), `policy.py` (T6), `approval.py`, `eventlog.py` y `loop.py` (T4), `providers/ollama.py` y
+  `tools/registry.py` y `tools/toy.py` (T3), `policy.py` (T6), `eventlog.py` y `loop.py` (T4), `providers/ollama.py` y
   `providers/gemini.py` (T5); `gabinete_evals/cases.py`, `graders.py`, `suite.py` y `report.py` (T7), `cli.py` y `__main__.py` (T8). Cada tarea escribe sus
   propios archivos y sus pruebas en `tests/test_<tema>.py`. Nadie edita `__init__.py`, `pyproject.toml` ni los módulos de otra tarea: se importa por ruta completa.
 - **T2:** el guion es una lista; cada elemento es `{text: str}`, `{tool_calls: [{name, arguments}]}` o un `LLMResponse`. Los `id` de las llamadas se
@@ -94,8 +95,8 @@ Formato de un caso de eval con proveedor falso (extiende el de PLAN sección 5):
 | T1 | (ninguna) | Dataclasses y `LLMProvider` del contrato; disposición de archivos y configuración de pytest | `pytest` corre y pasa una prueba que importa los tipos; con `PYTHONPATH` definido, `python -c "import gabinete_harness"` funciona | hecha |
 | T2 | T1 | `ScriptedProvider`: un `LLMProvider` falso que devuelve las respuestas de un guion, en orden | Pruebas: responde en orden y falla con un error claro si se acaba el guion | hecha (merge 50dd866) |
 | T3 | T1 | Registro de herramientas y herramienta de juguete `calendar.list_events(date)` que lee `fixtures/calendar.json` (solo lectura) | Prueba: los eventos de `2026-11-05` son `cal-008` y `cal-002`, en ese orden | hecha (merge 3982955) |
-| T4 | T1, T2, T3 | Bucle `run()`: máximo de pasos, aprobación humana obligatoria para herramientas con `requires_approval` (se deniegan por defecto) y registro de eventos en JSONL en `log_dir` (por defecto `evals-out/`; con datos reales debe apuntar **fuera del repo**, variable `GABINETE_LOG_DIR`) | Con `ScriptedProvider`: usa la herramienta y responde; corta al pasar `max_steps`; deniega una herramienta de escritura sin aprobación; el JSONL tiene un evento por paso | pendiente |
-| T5 | T1 | Adaptadores `OllamaProvider` y `GeminiProvider`. Verifica sus APIs en la documentación oficial antes de escribirlos; la clave de Gemini sale del entorno o de `.env`. Avisos de T3: los nombres de las herramientas llevan un punto (`calendar.list_events`) y algunos proveedores solo admiten letras, dígitos, `_` y `-` (mapea los nombres); y sus esquemas llevan `additionalProperties: false`, que alguna API puede rechazar (verifícalo en la documentación oficial) | Pruebas con HTTP simulado, y una prueba manual con tu modelo local | pendiente (depende de tu hardware y tu clave) |
+| T4 | T1, T2, T3 | Bucle `run()`: máximo de pasos, aprobación humana obligatoria para herramientas con `requires_approval` (se deniegan por defecto) y registro de eventos en JSONL en `log_dir` (por defecto `evals-out/`; con datos reales debe apuntar **fuera del repo**, variable `GABINETE_LOG_DIR`) | Con `ScriptedProvider`: usa la herramienta y responde; corta al pasar `max_steps`; deniega una herramienta de escritura sin aprobación; el JSONL tiene un evento por paso | hecha (merge 7925163) |
+| T5 | T1 | Adaptadores `OllamaProvider` y `GeminiProvider`. Verifica sus APIs en la documentación oficial antes de escribirlos; la clave de Gemini sale del entorno o de `.env`. Avisos de T3: los nombres de las herramientas llevan un punto (`calendar.list_events`) y algunos proveedores solo admiten letras, dígitos, `_` y `-` (mapea los nombres); y sus esquemas llevan `additionalProperties: false`, que alguna API puede rechazar (verifícalo en la documentación oficial). Además `run()` siempre pasa a `chat()` una lista de especificaciones, vacía si no hay herramientas: tolérala | Pruebas con HTTP simulado, y una prueba manual con tu modelo local | pendiente (depende de tu hardware y tu clave) |
 | T6 | T1 | Guardián D10: `check_data_policy(provider, notes_dir)` aborta si el proveedor no es `ollama` y la carpeta de notas no está dentro de `fixtures/`; no hay variable para saltárselo | Pruebas: ollama con carpeta real es válido; gemini con carpeta real da error; gemini con `fixtures/` es válido | hecha (merge 00a1650) |
 | T7 | T1 | Runner de evals: lee casos YAML (formato de arriba), repite cada caso N veces, califica por código (`contiene`, `no_contiene`, `herramienta`, `max_pasos`) y escribe un reporte JSON y otro Markdown, comparable con la corrida anterior | Prueba con 2 casos de juguete | hecha (merge 0581199) |
 | T8 | T2, T4, T7 | 10 evals iniciales en `packages/evals/cases/` (uso de herramienta, permisos, la instrucción inyectada del correo, fechas de hoy), corriendo con `ScriptedProvider` | `python -m gabinete_evals` imprime la tasa de acierto y termina con código 0 | pendiente |
