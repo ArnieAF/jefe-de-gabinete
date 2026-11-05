@@ -1,0 +1,28 @@
+# Secretos: nunca al repo (la plantilla .env.example sí se versiona)
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Datos y salidas locales
+data/
+*.sqlite
+*.db
+evals-out/
+
+# Editor / sistema operativo
+.idea/
+.vscode/
+.DS_Store
+Thumbs.db
