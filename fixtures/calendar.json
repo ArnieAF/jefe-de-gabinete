@@ -1,0 +1,66 @@
+[
+  {
+    "id": "cal-001",
+    "titulo": "Entrega de propuesta a Hotel Valle Sagrado",
+    "inicio": "2026-11-06T10:00:00-05:00",
+    "fin": "2026-11-06T10:30:00-05:00",
+    "asistentes": [],
+    "lugar": "No especificado"
+  },
+  {
+    "id": "cal-002",
+    "titulo": "Reunión de seguimiento con Rosa Huamán (Tienda Andina)",
+    "inicio": "2026-11-05T15:00:00-05:00",
+    "fin": "2026-11-05T15:45:00-05:00",
+    "asistentes": ["Rosa Huamán"],
+    "lugar": "Videollamada"
+  },
+  {
+    "id": "cal-003",
+    "titulo": "Gimnasio",
+    "inicio": "2026-11-09T06:30:00-05:00",
+    "fin": "2026-11-09T07:30:00-05:00",
+    "asistentes": [],
+    "lugar": "No especificado"
+  },
+  {
+    "id": "cal-004",
+    "titulo": "Revisión del PR del módulo de pagos",
+    "inicio": "2026-11-09T11:00:00-05:00",
+    "fin": "2026-11-09T12:00:00-05:00",
+    "asistentes": ["Diego Salas"],
+    "lugar": "Videollamada"
+  },
+  {
+    "id": "cal-005",
+    "titulo": "Recordatorio: cobrar factura F-0012",
+    "inicio": "2026-11-15T09:00:00-05:00",
+    "fin": "2026-11-15T09:15:00-05:00",
+    "asistentes": [],
+    "lugar": "No especificado"
+  },
+  {
+    "id": "cal-006",
+    "titulo": "Límite del cliente para elegir pasarela de pagos",
+    "inicio": "2026-11-12T12:00:00-05:00",
+    "fin": "2026-11-12T12:15:00-05:00",
+    "asistentes": ["Rosa Huamán"],
+    "lugar": "No especificado"
+  },
+  {
+    "id": "cal-007",
+    "titulo": "Migración de Tienda Andina a PostgreSQL",
+    "inicio": "2026-11-20T20:00:00-05:00",
+    "fin": "2026-11-20T22:00:00-05:00",
+    "asistentes": ["Diego Salas"],
+    "lugar": "Videollamada"
+  },
+  {
+    "id": "cal-008",
+    "titulo": "Cita con el dentista",
+    "inicio": "2026-11-05T11:30:00-05:00",
+    "fin": "2026-11-05T12:30:00-05:00",
+    "asistentes": [],
+    "lugar": "Consultorio Miraflores"
+  }
+]
