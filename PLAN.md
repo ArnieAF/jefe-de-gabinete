@@ -9,7 +9,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 
 | Fase | Contenido | Estado |
 |---|---|---|
-| F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en la PC de trabajo y en GitHub Actions; falta tu prueba en la PC de casa |
+| F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en local y en GitHub Actions; falta tu prueba en la PC de casa |
 | F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4 y T6 a T9 hechas (925 pruebas; CI en Linux y Windows); faltan T5 (adaptador de Ollama), T11 (CLI con proveedores reales) y T10 (Gemini, opcional); ver `docs/F1-tareas.md` |
 | F2 | MCP de notas (solo lectura) | pendiente |
 | F3 | RAG sobre notas + evals de recuperación | pendiente |
@@ -18,7 +18,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | F6 | MCP de calendario y GitHub (lectura primero) | pendiente |
 | F7 | Post-MVP: correo, UI, ejecución programada | fuera del MVP |
 
-Hecho hasta ahora (F0): plan, repo en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. El núcleo del harness y de los evals (F1: T1 a T4 y T6 a T9) ya existe y tiene 925 pruebas; todavía no usa un modelo real.
+Hecho hasta ahora (F0): plan, repo en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (en local y en CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. El núcleo del harness y de los evals (F1: T1 a T4 y T6 a T9) ya existe y tiene 925 pruebas; todavía no usa un modelo real.
 
 **Siguiente:** T5 (adaptador de Ollama) y luego T11 (CLI con proveedores reales) para medir con un modelo real; el modelo local se elige según el hardware de la PC de casa. Tareas pequeñas en `docs/F1-tareas.md`; guía para seguir desde la PC de casa en `docs/ARRANQUE-CASA.md`; instrucciones para asistentes de IA en `AGENTS.md`.
 
