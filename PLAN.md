@@ -20,6 +20,8 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 
 Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
 
+**Siguiente:** F1 (harness mínimo y 10 evals). El bucle del agente y los evals con un proveedor de prueba no dependen del hardware; el modelo local se elige cuando se conozca la PC de casa.
+
 ## 2. Alcance
 
 ### Dentro del MVP (F0–F5)
@@ -52,6 +54,7 @@ Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `dock
 | D8 | RAG: primero a mano (chunking, embeddings, búsqueda), luego comparar con LlamaIndex | propuesta | Aprender primero; medir después si el framework mejora. |
 | D9 | El harness habla con el modelo a través de una interfaz `LLMProvider` (sección 5); el bucle de herramientas sigue siendo propio (D7) | propuesta | Permite pasar de un modelo gratuito a otro (por ejemplo al agotarse una cuota) o a uno de pago sin reescribir el agente. |
 | D10 | **Privacidad:** los datos reales (notas, correo, calendario) solo pasan por modelos locales; las nubes gratuitas reciben únicamente los datos falsos de `fixtures/` | decidida | La página de precios de la API de Gemini indica que en el nivel gratuito el contenido se usa para mejorar los productos de Google (consultada el 2026-11-05). |
+| D11 | **Ritmo:** sin límite de horas; el avance se mide por fases (sección 6), no por fechas | decidida (2026-11-05) | El usuario dispone del tiempo que necesite. Una fase termina cuando cumple su criterio de "listo". |
 
 ## 4. Estructura del repositorio
 
@@ -196,7 +199,7 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 1. ¿Python o TypeScript para el núcleo? (D1) — F0 usa Python como propuesta; falta tu confirmación.
 2. ¿Tus notas están en Obsidian o en otra carpeta? (D3) — no urge hasta que quieras leer notas reales.
 3. ¿Qué hardware tiene la PC de casa (RAM, CPU, GPU)? Define qué modelos locales sirven.
-4. ¿Cuántas horas por semana puedes dedicarle? Define el calendario de fases.
+4. ¿El repo `jefe-de-gabinete` sigue privado o se hace público para tu perfil de GitHub y tu CV? Hoy es privado. Antes de publicarlo hay que elegir una licencia y revisar el historial (el 2026-11-05 no tenía secretos ni datos reales).
 5. ¿Te sirven la identidad de git (nombre de tu perfil de GitHub y correo noreply) y el nombre del repo `jefe-de-gabinete`? Se pueden cambiar antes de más commits.
 
 ## 13. Registro de modelos
