@@ -6,6 +6,7 @@ un caso mal escrito no se califique en silencio.
 """
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any
@@ -15,8 +16,9 @@ import yaml
 from gabinete_harness.types import STOP_REASONS
 
 # Claves permitidas. `sesiones` es del formato de PLAN sección 5 (casos de memoria, F4): se conserva en `raw`.
-CASE_KEYS = ("id", "capa", "pregunta", "guion", "esperado", "repeticiones", "sesiones")
+CASE_KEYS = ("id", "capa", "pregunta", "guion", "esperado", "repeticiones", "sesiones", "limites")
 EXPECT_KEYS = ("contiene", "no_contiene", "herramienta", "max_pasos", "stop_reason")
+LIMITES_KEYS = ("max_steps", "max_cost_usd")
 DEFAULT_CAPA = "sin-capa"
 
 
@@ -42,8 +44,22 @@ class Expect:
 
 
 @dataclass
+class Limites:
+    """Límites de la corrida que la CLI le pasa a `run()` (T8). None = no pedido (la CLI usa su valor por defecto).
+
+    `max_cost_usd = 0.0` significa "sin límite", igual que en `run()`.
+    """
+
+    max_steps: int | None = None
+    max_cost_usd: float | None = None
+
+
+@dataclass
 class Case:
-    """Un caso de eval. `raw` conserva el diccionario original del YAML."""
+    """Un caso de eval. `raw` conserva el diccionario original del YAML.
+
+    `limites` va al final para no alterar el orden de los demás campos.
+    """
 
     id: str
     capa: str
@@ -52,6 +68,7 @@ class Case:
     repeticiones: int = 1
     guion: list | None = None
     raw: dict = field(default_factory=dict)
+    limites: Limites | None = None
 
 
 class _StrictLoader(yaml.SafeLoader):
@@ -136,6 +153,32 @@ def _parse_expect(raw: Any, origin: str, case_id: str) -> Expect:
     return expect
 
 
+def _parse_limites(raw: Any, origin: str, case_id: str) -> Limites:
+    if not isinstance(raw, dict):
+        raise _fail(origin, case_id, "'limites' debe ser un mapa con 'max_steps' y/o 'max_cost_usd'")
+    unknown = sorted(str(k) for k in raw if k not in LIMITES_KEYS)
+    if unknown:
+        raise _fail(
+            origin, case_id, f"claves desconocidas en 'limites': {', '.join(unknown)} (permitidas: {', '.join(LIMITES_KEYS)})"
+        )
+    if not raw:
+        raise _fail(origin, case_id, "'limites' está vacío; indica 'max_steps' y/o 'max_cost_usd' (o quita la clave)")
+    max_steps = raw.get("max_steps")
+    if "max_steps" in raw and (not _is_int(max_steps) or max_steps < 1):
+        raise _fail(origin, case_id, f"'max_steps' (en 'limites') debe ser un entero >= 1, no {max_steps!r}")
+    max_cost = raw.get("max_cost_usd")
+    if "max_cost_usd" in raw:
+        es_numero = isinstance(max_cost, (int, float)) and not isinstance(max_cost, bool)
+        try:  # un entero gigante desborda al convertirlo a float
+            valido = es_numero and math.isfinite(max_cost) and max_cost >= 0
+        except OverflowError:
+            valido = False
+        if not valido:
+            raise _fail(origin, case_id, f"'max_cost_usd' (en 'limites') debe ser un número finito >= 0, no {max_cost!r}")
+        max_cost = float(max_cost)
+    return Limites(max_steps=max_steps, max_cost_usd=max_cost)
+
+
 def _parse_case(raw: Any, origin: str, position: int) -> Case:
     if not isinstance(raw, dict):
         raise ValueError(f"{origin}: el elemento #{position} debe ser un mapa (caso), no {type(raw).__name__}")
@@ -158,6 +201,7 @@ def _parse_case(raw: Any, origin: str, position: int) -> Case:
     if guion is not None and not isinstance(guion, list):
         raise _fail(origin, case_id, "'guion' debe ser una lista de respuestas")
     esperado = _parse_expect(raw.get("esperado"), origin, case_id)
+    limites = _parse_limites(raw["limites"], origin, case_id) if "limites" in raw else None
     return Case(
         id=case_id,
         capa=capa,
@@ -166,6 +210,7 @@ def _parse_case(raw: Any, origin: str, position: int) -> Case:
         repeticiones=repeticiones,
         guion=guion,
         raw=dict(raw),
+        limites=limites,
     )
 
 
