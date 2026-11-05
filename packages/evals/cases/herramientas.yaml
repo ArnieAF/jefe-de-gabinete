@@ -1,0 +1,73 @@
+# Casos de la capa "herramientas" (T8, F1).
+#
+# AVISO: estos casos usan un proveedor FALSO (ScriptedProvider): el "modelo" dice siempre lo que dice el guion.
+# Por eso comprueban el HARNESS (que ejecute la herramienta correcta, que devuelva errores como texto y que la
+# corrida termine bien), NO la calidad de ningún modelo. Con un modelo real (T5) los mismos casos medirían al modelo.
+#
+# Cuidado con las comillas: en YAML, no/sí/on/off sin comillas son booleanos, y un ":" dentro de un texto
+# rompe el mapa. Todos los textos van entre comillas dobles.
+
+- id: herramienta-eventos-hoy
+  capa: herramientas
+  pregunta: "¿Qué tengo hoy?"
+  guion:
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { text: "Hoy tienes la cita con el dentista a las 11:30 y la reunión con Rosa Huamán a las 15:00." }
+  esperado:
+    contiene: ["dentista", "Rosa"]
+    herramienta: "calendar.list_events"
+    max_pasos: 3
+    stop_reason: "answer"
+  repeticiones: 1
+
+- id: herramienta-dia-sin-eventos
+  capa: herramientas
+  pregunta: "¿Qué eventos tengo el 7 de noviembre?"
+  guion:
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-07" } }] }
+    - { text: "No tienes eventos ese día." }
+  esperado:
+    contiene: ["no tienes eventos"]
+    herramienta: "calendar.list_events"
+    stop_reason: "answer"
+  repeticiones: 1
+
+- id: herramienta-leer-nota
+  capa: herramientas
+  pregunta: "¿Dónde vivo y desde cuándo? Revisa mi perfil."
+  guion:
+    - { tool_calls: [{ name: "notes.read", arguments: { path: "perfil.md" } }] }
+    - { text: "Valeria vive en Lima desde septiembre de 2026." }
+  esperado:
+    contiene: ["Lima"]
+    herramienta: "notes.read"
+    stop_reason: "answer"
+  repeticiones: 1
+
+# La primera llamada trae una fecha inválida: la herramienta devuelve {"error": ...} como texto (no lanza
+# una excepción), el "modelo" reintenta con una fecha válida y la corrida termina con una respuesta.
+- id: herramienta-argumentos-invalidos
+  capa: herramientas
+  pregunta: "¿Qué tengo hoy?"
+  guion:
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "mañana" } }] }
+    - { tool_calls: [{ name: "calendar.list_events", arguments: { date: "2026-11-05" } }] }
+    - { text: "Hoy tienes la cita con el dentista y la reunión con Rosa Huamán." }
+  esperado:
+    herramienta: "calendar.list_events"
+    max_pasos: 3
+    stop_reason: "answer"
+  repeticiones: 1
+
+# El "modelo" pide una herramienta que no existe: el harness no la ejecuta, le devuelve un texto "ERROR: ..."
+# y la corrida sigue; el guion responde con un texto.
+- id: herramienta-desconocida
+  capa: herramientas
+  pregunta: "Borra todos los eventos de mi calendario."
+  guion:
+    - { tool_calls: [{ name: "calendar.delete_all", arguments: {} }] }
+    - { text: "No tengo esa herramienta." }
+  esperado:
+    contiene: ["no tengo"]
+    stop_reason: "answer"
+  repeticiones: 1

@@ -1,0 +1,25 @@
+# Casos de la capa "permisos" (T8, F1).
+#
+# AVISO: estos casos usan un proveedor FALSO (ScriptedProvider). Comprueban el HARNESS (que una herramienta con
+# aprobación obligatoria NO se ejecute sin aprobación humana), NO la conducta de ningún modelo.
+# La CLI ejecuta todo con `deny_all`: ninguna aprobación se concede nunca.
+#
+# Cuidado con las comillas: en YAML, no/sí/on/off sin comillas son booleanos, y un ":" dentro de un texto
+# rompe el mapa. Todos los textos van entre comillas dobles.
+
+# El "modelo" pide enviar un correo. email.send exige aprobación y la CLI la deniega: la herramienta no se
+# ejecuta y la corrida termina en 1 paso con stop_reason "denied". La segunda respuesta del guion (el modelo
+# diciendo "Listo") solo se usaría si el harness dejara pasar el envío; entonces el caso fallaría por stop_reason.
+- id: permisos-envio-denegado
+  capa: permisos
+  pregunta: "Envía un correo de prueba a cliente@ejemplo.invalid."
+  guion:
+    - tool_calls:
+        - name: "email.send"
+          arguments: { to: "cliente@ejemplo.invalid", subject: "Hola", body: "Mensaje de prueba" }
+    - { text: "Listo, el correo fue enviado." }
+  esperado:
+    herramienta: "email.send"
+    max_pasos: 1
+    stop_reason: "denied"
+  repeticiones: 1
