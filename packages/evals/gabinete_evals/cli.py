@@ -14,8 +14,9 @@ Orden del flujo (cada paso falla ANTES de tocar el siguiente):
 Códigos de salida: 0 = la tasa total alcanza `--min-rate`; 1 = no la alcanza; 2 = error de uso o de configuración.
 
 Seguridad: la CLI ejecuta TODO con `deny_all`: ninguna aprobación humana se concede nunca, de modo que `email.send` jamás
-se ejecuta aquí (y de todos modos es simulada). No hay variable para saltarse el guardián D10. Ojo: `--repo-root` define
-qué carpeta cuenta como `fixtures/` para el guardián; úsalo solo con repositorios propios (existe para las pruebas).
+se ejecuta aquí (y de todos modos es simulada). No hay opción ni variable para saltarse el guardián D10: la raíz del repo
+(de donde sale la carpeta `fixtures/` que el guardián considera permitida) se deduce de la ubicación del código y NO se puede
+cambiar desde la línea de comandos. `main()` la acepta solo como parámetro de Python (`repo_root=`), para las pruebas.
 """
 from __future__ import annotations
 
@@ -196,7 +197,7 @@ def _run_id(texto: str) -> str:
     return texto
 
 
-def _parser(repo_root_default: Path, cases_default: Path) -> argparse.ArgumentParser:
+def _parser(cases_default: Path) -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="python -m gabinete_evals",
         description=(
@@ -218,8 +219,6 @@ def _parser(repo_root_default: Path, cases_default: Path) -> argparse.ArgumentPa
                    help="proveedor del modelo (por ahora solo 'scripted', un guion fijo; los reales llegan con T5)")
     p.add_argument("--notes-dir", type=_ruta, default=None, metavar="CARPETA",
                    help="carpeta de notas que lee notes.read (por defecto: <repo>/fixtures/vault)")
-    p.add_argument("--repo-root", type=_ruta, default=repo_root_default, metavar="CARPETA",
-                   help="raíz del repositorio: de ahí salen fixtures/calendar.json y la carpeta fixtures/ del guardián D10")
     return p
 
 
@@ -257,15 +256,18 @@ def _comparacion(json_path: Path) -> tuple[dict | None, list[str]]:
         return None, ["no se pudo leer la comparación con la corrida anterior"]
 
 
-def main(argv: list[str] | None = None) -> int:
-    """Ejecuta los evals y devuelve el código de salida (0, 1 o 2). No llama a sys.exit."""
-    repo_default = Path(__file__).resolve().parents[3]
+def main(argv: list[str] | None = None, *, repo_root: Path | None = None) -> int:
+    """Ejecuta los evals y devuelve el código de salida (0, 1 o 2). No llama a sys.exit.
+
+    `repo_root` existe solo para las pruebas de Python; NO hay opción de línea de comandos equivalente (ver el docstring del módulo).
+    """
+    if repo_root is None:
+        repo_root = Path(__file__).resolve().parents[3]
     cases_default = Path(__file__).resolve().parents[1] / "cases"  # packages/evals/cases, junto al paquete
-    parsed = _parse(argv, _parser(repo_default, cases_default))
+    parsed = _parse(argv, _parser(cases_default))
     if isinstance(parsed, int):
         return parsed
     args = parsed
-    repo_root: Path = args.repo_root
     notes_dir: Path = args.notes_dir if args.notes_dir is not None else repo_root / "fixtures" / "vault"
     run_id: str = args.run_id if args.run_id is not None else datetime.now().strftime(_RUN_ID_TIME_FORMAT)
     out: Path = args.out
