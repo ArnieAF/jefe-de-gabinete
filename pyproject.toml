@@ -6,6 +6,8 @@ name = "gabinete"
 version = "0.0.0"
 description = "Jefe de Gabinete Personal: agente de IA con MCP, RAG, memoria y evals"
 readme = "README.md"
+license = "MIT"
+authors = [{ name = "Arnie Adriano" }]
 requires-python = ">=3.12"
 dependencies = ["pyyaml>=6.0"]
 

@@ -23,7 +23,7 @@ python -m venv .venv                                              # usa Python 3
 pip install pyyaml pytest
 python scripts/verify_fixtures.py .                               # debe terminar con "fixtures OK"
 ```
-Al clonar, Git te pedirá iniciar sesión en GitHub con la cuenta `ArnieAF` (el repo es privado).
+El repo es público: clonar no pide iniciar sesión. Para subir cambios (`git push`) sí te pedirá iniciar sesión en GitHub con la cuenta `ArnieAF`.
 
 Cuando llegue la tarea T5, la clave de Gemini (si la usas) ponla tú como variable de entorno de tu usuario en lugar de dejarla en un archivo:
 `[Environment]::SetEnvironmentVariable("GEMINI_API_KEY", "<tu clave>", "User")`. No la pegues en el chat.

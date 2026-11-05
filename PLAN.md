@@ -10,7 +10,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | Fase | Contenido | Estado |
 |---|---|---|
 | F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en la PC de trabajo y en GitHub Actions; falta tu prueba en la PC de casa |
-| F1 | Harness mínimo + primeros 10 evals | pendiente |
+| F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4, T6 y T7 hechas; faltan T5 (adaptadores de modelo: depende del hardware y la clave), T8 y T9 (ver `docs/F1-tareas.md`) |
 | F2 | MCP de notas (solo lectura) | pendiente |
 | F3 | RAG sobre notas + evals de recuperación | pendiente |
 | F4 | Memoria con mem0 + evals de memoria | pendiente |
@@ -18,7 +18,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | F6 | MCP de calendario y GitHub (lectura primero) | pendiente |
 | F7 | Post-MVP: correo, UI, ejecución programada | fuera del MVP |
 
-Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
+Hecho hasta ahora (F0): plan, repo en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
 
 **Siguiente:** F1 (harness mínimo y 10 evals). El bucle del agente y los evals con un proveedor de prueba no dependen del hardware; el modelo local se elige cuando se conozca la PC de casa. Tareas pequeñas en `docs/F1-tareas.md`; guía para seguir desde la PC de casa en `docs/ARRANQUE-CASA.md`; instrucciones para asistentes de IA en `AGENTS.md`.
 
@@ -55,6 +55,7 @@ Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `dock
 | D9 | El harness habla con el modelo a través de una interfaz `LLMProvider` (sección 5); el bucle de herramientas sigue siendo propio (D7) | propuesta | Permite pasar de un modelo gratuito a otro (por ejemplo al agotarse una cuota) o a uno de pago sin reescribir el agente. |
 | D10 | **Privacidad:** los datos reales (notas, correo, calendario) solo pasan por modelos locales; las nubes gratuitas reciben únicamente los datos falsos de `fixtures/` | regla vigente para el trabajo (las nubes solo ven datos falsos); falta confirmar con el usuario qué datos reales entran | La página de precios de la API de Gemini indica que en el nivel gratuito el contenido se usa para mejorar los productos de Google (consultada el 2026-11-05). |
 | D11 | **Ritmo:** sin límite de horas; el avance se mide por fases (sección 6), no por fechas | decidida (2026-11-05) | El usuario dispone del tiempo que necesite. Una fase termina cuando cumple su criterio de "listo". |
+| D12 | **Repo público** con licencia **MIT** a nombre de Arnie Adriano | decidida (2026-11-05) | El usuario lo pidió para su perfil de GitHub. Antes se revisó todo el historial (33 commits, todas las ramas): sin secretos, rutas de la PC, correos reales ni datos personales. Mientras el usuario no pruebe y fusione `develop` en `main`, la rama visible por defecto es `develop`. |
 
 ## 4. Estructura del repositorio
 
@@ -205,8 +206,7 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 1. ¿Python o TypeScript para el núcleo? (D1) — F0 usa Python como propuesta; falta tu confirmación.
 2. ¿Tus notas están en Obsidian o en otra carpeta, y cuáles entran primero? (D3, D10) — protocolo en `docs/ARRANQUE-CASA.md`, sección 5; las notas reales no se leen hasta F2 o F3.
 3. ¿Qué hardware tiene la PC de casa (RAM, CPU, GPU)? Define qué modelos locales sirven.
-4. ¿El repo `jefe-de-gabinete` sigue privado o se hace público para tu perfil de GitHub y tu CV? Hoy es privado. Antes de publicarlo hay que elegir una licencia y revisar el historial (el 2026-11-05 no tenía secretos ni datos reales).
-5. ¿Te sirven la identidad de git (nombre de tu perfil de GitHub y correo noreply) y el nombre del repo `jefe-de-gabinete`? Se pueden cambiar antes de más commits.
+4. ¿Te sirven la identidad de git (nombre de tu perfil de GitHub y correo noreply) y el nombre del repo `jefe-de-gabinete`? Se pueden cambiar antes de más commits.
 
 ## 13. Registro de modelos
 
