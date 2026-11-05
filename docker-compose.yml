@@ -1,0 +1,40 @@
+# Servicios locales del proyecto Gabinete (solo PostgreSQL con pgvector).
+#
+# Uso:
+#   1. Copia .env.example a .env y define POSTGRES_PASSWORD.
+#   2. docker compose up -d
+#   3. docker compose exec db psql -U gabinete -d gabinete -c "\dx"   (debe listar "vector")
+#
+# Imagen: pgvector/pgvector:pg17. La etiqueta existe en Docker Hub (comprobado el 2026-11-05).
+# Se usa pg17 y no pg18 porque la imagen oficial de postgres cambió el volumen en la versión 18
+# (a /var/lib/postgresql; fuente: su página en Docker Hub, consultada el 2026-11-05). Con pg17
+# el montaje en /var/lib/postgresql/data de abajo es el correcto. Que pgvector herede ese
+# comportamiento no se verificó.
+# Nombre fijo del proyecto: sin esto Compose usa el nombre de la carpeta, y el volumen de
+# datos cambiaría de nombre si la carpeta se llama distinto en otra máquina.
+name: gabinete
+
+services:
+  db:
+    image: pgvector/pgvector:pg17
+    container_name: gabinete-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-gabinete}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en tu archivo .env}
+      POSTGRES_DB: ${POSTGRES_DB:-gabinete}
+    ports:
+      # Solo accesible desde esta máquina (127.0.0.1), nunca desde la red.
+      - "127.0.0.1:${POSTGRES_PORT:-5433}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      # Los scripts de esta carpeta corren solo la primera vez, cuando el volumen está vacío.
+      - ./docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+volumes:
+  pgdata:

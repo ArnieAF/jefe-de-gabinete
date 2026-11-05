@@ -1,0 +1,9 @@
+# Esqueleto de la fase F0: solo metadatos. Las dependencias y el empaquetado se definen en F1,
+# cuando exista código; hoy no hay nada que instalar.
+[project]
+name = "gabinete"
+version = "0.0.0"
+description = "Jefe de Gabinete Personal: agente de IA con MCP, RAG, memoria y evals"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = []
