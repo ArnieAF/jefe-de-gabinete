@@ -1,2 +1,6 @@
 # Finales de línea consistentes entre Windows y Linux (Docker, scripts).
 * text=auto eol=lf
+
+# Scripts de Windows que sí necesitan CRLF
+*.bat text eol=crlf
+*.cmd text eol=crlf

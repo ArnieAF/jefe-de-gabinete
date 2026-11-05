@@ -26,3 +26,22 @@ evals-out/
 .vscode/
 .DS_Store
 Thumbs.db
+
+# Más secretos y credenciales (llaves, cuentas de servicio, direnv)
+.envrc
+*.env
+*.pem
+*.key
+*.p12
+*.pfx
+*.ppk
+id_rsa*
+credentials*.json
+service-account*.json
+secrets/
+
+# Registros del harness (F1): pueden contener texto de notas, no se versionan
+runs/
+logs/
+traces/
+*.jsonl

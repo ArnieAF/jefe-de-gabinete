@@ -18,7 +18,9 @@ services:
   db:
     image: pgvector/pgvector:pg17
     container_name: gabinete-db
-    restart: unless-stopped
+    # No se reinicia sola al abrir Docker Desktop (pesa en una PC modesta): enciéndela con
+    # "docker compose up -d" y apágala con "docker compose stop".
+    restart: "no"
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-gabinete}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Define POSTGRES_PASSWORD en tu archivo .env}

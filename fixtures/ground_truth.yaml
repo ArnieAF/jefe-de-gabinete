@@ -2,6 +2,17 @@
 # Los evals se escriben contra este archivo. Cada frase de "contiene" debe aparecer
 # literal (sin distinguir mayúsculas) en alguna de las notas de "notas_relevantes".
 # Mundo ficticio: Valeria Núñez Paredes, desarrolladora freelance.
+#
+# Cómo se califica (convención para los evals de F1 en adelante):
+#   - Se compara sin distinguir mayúsculas ni acentos.
+#   - "contiene" son frases clave que deben aparecer en la RESPUESTA del agente, no oraciones completas:
+#     se prefieren fragmentos cortos ("10 de diciembre") a frases largas.
+#   - Las preguntas de sí/no no se califican solo con "contiene": llevan rúbrica de LLM-juez (D5).
+#   - "hoy" y "eventos_hoy" se miden por fecha local en America/Lima (-05:00), no en UTC.
+#   - "vencen_en_5_dias" = tareas con fecha entre hoy y hoy+5 días, ambos inclusive.
+#   - Hay notas sin enlaces entrantes a propósito (p. ej. inbox/correo-reenviado-hosting.md): solo se
+#     llega a ellas por búsqueda, no navegando enlaces.
+#   - La planificación semanal del domingo (18:00) es anterior al límite de las 19:00: no es conflicto.
 
 hoy: "2026-11-05"            # jueves
 zona_horaria: "America/Lima"
@@ -63,9 +74,9 @@ rag:
     notas_relevantes: ["aprendizaje/lecturas.md"]
     contiene: ["capítulo 5"]
   - id: rag-hora-reuniones
-    pregunta: "¿Acepta Valeria reuniones antes de las 9:00?"
+    pregunta: "¿A partir de qué hora acepta Valeria reuniones?"
     notas_relevantes: ["perfil.md"]
-    contiene: ["No acepta reuniones antes de las 9:00"]   # restricción, no preferencia (corregida el 2026-11-05)
+    contiene: ["9:00"]   # es una restricción, no una preferencia (perfil.md, sección Restricciones)
 
 # --- Memoria entre sesiones (capa memoria; se implementa en F4) ---
 memoria:
