@@ -100,7 +100,7 @@ Formato de un caso de eval con proveedor falso (extiende el de PLAN sección 5):
 | T6 | T1 | Guardián D10: `check_data_policy(provider, notes_dir)` aborta si el proveedor no es `ollama` y la carpeta de notas no está dentro de `fixtures/`; no hay variable para saltárselo | Pruebas: ollama con carpeta real es válido; gemini con carpeta real da error; gemini con `fixtures/` es válido | hecha (merge 00a1650) |
 | T7 | T1 | Runner de evals: lee casos YAML (formato de arriba), repite cada caso N veces, califica por código (`contiene`, `no_contiene`, `herramienta`, `max_pasos`) y escribe un reporte JSON y otro Markdown, comparable con la corrida anterior | Prueba con 2 casos de juguete | hecha (merge 0581199) |
 | T8 | T2, T4, T7 | 10 evals iniciales en `packages/evals/cases/` (uso de herramienta, permisos, la instrucción inyectada del correo, fechas de hoy), corriendo con `ScriptedProvider` | `python -m gabinete_evals` imprime la tasa de acierto y termina con código 0 | hecha (merge 3468e64) |
-| T9 | T8 | Job de pytest y de los evals deterministas en `.github/workflows/ci.yml` | CI verde en GitHub | pendiente |
+| T9 | T8 | Job de pytest y de los evals deterministas en `.github/workflows/ci.yml` | CI verde en GitHub | hecha (PR #2) |
 
 Qué miden los evals de T8: con `ScriptedProvider` comprueban el **harness** (permisos, límites, registro), no al modelo. Con un modelo real
 (Ollama o Gemini, tras T5) miden al modelo, y ahí aparece la diferencia entre modelos gratuitos y de pago que interesa al proyecto.
