@@ -1,7 +1,8 @@
 # Integración continua de la fase F0.
-# Corre en cada push o pull request a main y develop. Dos comprobaciones:
+# Corre en cada push o pull request a main y develop. Tres comprobaciones:
 #   1. fixtures: las notas y el calendario falsos coinciden con fixtures/ground_truth.yaml.
 #   2. postgres: docker compose levanta PostgreSQL con pgvector y la extensión funciona.
+#   3. pytest: las pruebas del harness y de los evals y la CLI de evals, en Linux y en Windows.
 #
 # Las acciones se fijan por SHA de commit (el comentario indica la versión) para que una
 # etiqueta movida no cambie lo que se ejecuta. Permisos mínimos: solo lectura del repo.
@@ -34,6 +35,28 @@ jobs:
         run: python -m pip install --disable-pip-version-check pyyaml
       - name: Verificar fixtures
         run: python scripts/verify_fixtures.py .
+
+  pytest:
+    name: Pruebas (pytest y evals) en ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Instalar dependencias de prueba
+        run: python -m pip install --disable-pip-version-check pytest pyyaml
+      - name: Ejecutar pytest
+        run: python -m pytest -q -rs
+      - name: Ejecutar los evals deterministas (10 casos, proveedor falso)
+        env:
+          PYTHONPATH: ${{ matrix.os == 'windows-latest' && 'packages/harness;packages/evals' || 'packages/harness:packages/evals' }}
+        run: python -m gabinete_evals --out "${{ runner.temp }}/evals-out" --run-id ci
 
   postgres:
     name: PostgreSQL con pgvector (docker compose)

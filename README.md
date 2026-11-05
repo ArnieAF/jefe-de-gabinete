@@ -37,8 +37,8 @@ Tus notas reales nunca deben ir ahí ni salir de tu máquina.
 
 - `python scripts/verify_fixtures.py` verifica que las notas y el calendario falsos coincidan con
   `fixtures/ground_truth.yaml` (necesita `pip install pyyaml`).
-- GitHub Actions (`.github/workflows/ci.yml`) corre esa verificación y además levanta PostgreSQL con
-  pgvector con `docker compose`, en cada push o pull request a `main` y `develop`. Al ser un repositorio
+- GitHub Actions (`.github/workflows/ci.yml`) corre esa verificación, levanta PostgreSQL con pgvector con
+  `docker compose` y ejecuta `pytest` y los evals en Linux y Windows, en cada push o pull request a `main` y `develop`. Al ser un repositorio
   público, los ejecutores estándar de GitHub Actions no tienen costo.
 
 ## Pruebas
