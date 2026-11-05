@@ -1,10 +1,14 @@
 # Jefe de Gabinete Personal
 
+[![CI](https://github.com/ArnieAF/jefe-de-gabinete/actions/workflows/ci.yml/badge.svg)](https://github.com/ArnieAF/jefe-de-gabinete/actions/workflows/ci.yml)
+
 Agente de IA personal que cada mañana te dice qué pasó, qué sigue y qué recuerda de ti.
 Reúne MCP, RAG, memoria (mem0), evals y un harness propio. El plan, las decisiones y el
 estado de cada fase están en [PLAN.md](PLAN.md).
 
-**Estado:** F0 lista; F1 por empezar. Todavía no hay código del agente. Para seguir desde otra PC: [docs/ARRANQUE-CASA.md](docs/ARRANQUE-CASA.md).
+**Estado:** F1 en curso. El núcleo del harness (tipos, proveedor de prueba, herramientas, bucle con aprobación humana, guardián de privacidad y
+runner de evals) ya tiene pruebas; todavía no usa un modelo real. Detalle en [PLAN.md](PLAN.md) y [docs/F1-tareas.md](docs/F1-tareas.md).
+Para seguir desde otra PC: [docs/ARRANQUE-CASA.md](docs/ARRANQUE-CASA.md).
 
 ## Requisitos
 
@@ -34,8 +38,8 @@ Tus notas reales nunca deben ir ahí ni salir de tu máquina.
 - `python scripts/verify_fixtures.py` verifica que las notas y el calendario falsos coincidan con
   `fixtures/ground_truth.yaml` (necesita `pip install pyyaml`).
 - GitHub Actions (`.github/workflows/ci.yml`) corre esa verificación y además levanta PostgreSQL con
-  pgvector con `docker compose`, en cada push o pull request a `main` y `develop`. Los repos privados
-  tienen un monto mensual gratis de minutos de Actions; si se agota, los jobs se detienen.
+  pgvector con `docker compose`, en cada push o pull request a `main` y `develop`. Al ser un repositorio
+  público, los ejecutores estándar de GitHub Actions no tienen costo.
 
 ## Pruebas
 
@@ -60,3 +64,7 @@ scripts/    comprobaciones de los datos de prueba y medición de hardware
 docker/     scripts de inicio de la base
 docs/       guía de arranque, tareas de F1 y resúmenes de auditoría por fase
 ```
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Arnie Adriano.
