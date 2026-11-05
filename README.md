@@ -23,12 +23,22 @@ estado de cada fase están en [PLAN.md](PLAN.md).
 `fixtures/` contiene notas y un calendario **inventados**. Los evals corren solo sobre esos datos.
 Tus notas reales nunca deben ir ahí ni salir de tu máquina.
 
+## Comprobaciones
+
+- `python scripts/verify_fixtures.py` verifica que las notas y el calendario falsos coincidan con
+  `fixtures/ground_truth.yaml` (necesita `pip install pyyaml`).
+- GitHub Actions (`.github/workflows/ci.yml`) corre esa verificación y además levanta PostgreSQL con
+  pgvector con `docker compose`, en cada push o pull request a `main` y `develop`. Los repos privados
+  tienen un monto mensual gratis de minutos de Actions; si se agota, los jobs se detienen.
+
 ## Estructura
 
 ```
+.github/    flujo de integración continua
 packages/   harness, mcp_servers, rag, memory, evals (vacíos hasta F1)
 app/        CLI `gabinete` (vacío hasta F5)
 fixtures/   notas y calendario falsos + ground_truth.yaml
+scripts/    comprobaciones de los datos de prueba
 docker/     scripts de inicio de la base
 docs/       resúmenes de auditoría por fase
 ```

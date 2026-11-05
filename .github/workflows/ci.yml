@@ -1,0 +1,65 @@
+# Integración continua de la fase F0.
+# Corre en cada push o pull request a main y develop. Dos comprobaciones:
+#   1. fixtures: las notas y el calendario falsos coinciden con fixtures/ground_truth.yaml.
+#   2. postgres: docker compose levanta PostgreSQL con pgvector y la extensión funciona.
+#
+# Las acciones se fijan por SHA de commit (el comentario indica la versión) para que una
+# etiqueta movida no cambie lo que se ejecuta. Permisos mínimos: solo lectura del repo.
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fixtures:
+    name: Fixtures coherentes con ground_truth
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0 # v7.1.0
+        with:
+          python-version: "3.12"
+      - name: Instalar PyYAML
+        run: python -m pip install --disable-pip-version-check pyyaml
+      - name: Verificar fixtures
+        run: python scripts/verify_fixtures.py .
+
+  postgres:
+    name: PostgreSQL con pgvector (docker compose)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - name: Contraseña efímera (vive solo en esta corrida)
+        run: |
+          pw="$(openssl rand -hex 16)"
+          echo "::add-mask::$pw"
+          echo "POSTGRES_PASSWORD=$pw" >> "$GITHUB_ENV"
+      - name: Validar docker-compose.yml
+        run: docker compose config --quiet
+      - name: Levantar y esperar a que esté sano
+        run: docker compose up -d --wait --wait-timeout 120
+      - name: La extensión vector existe y calcula distancias
+        run: |
+          ext="$(docker compose exec -T db psql -U gabinete -d gabinete -tAc "SELECT extname FROM pg_extension WHERE extname = 'vector'")"
+          test "$ext" = "vector"
+          dist="$(docker compose exec -T db psql -U gabinete -d gabinete -tAc "SELECT '[1,2,3]'::vector <-> '[1,2,4]'::vector")"
+          echo "distancia [1,2,3] a [1,2,4] = $dist (esperada: 1)"
+          test "$dist" = "1"
+      - name: Registros del contenedor (solo si algo falló)
+        if: failure()
+        run: docker compose logs db
+      - name: Limpiar
+        if: always()
+        run: docker compose down -v
