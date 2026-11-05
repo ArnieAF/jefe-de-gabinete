@@ -4,7 +4,7 @@ Agente de IA personal que cada mañana te dice qué pasó, qué sigue y qué rec
 Reúne MCP, RAG, memoria (mem0), evals y un harness propio. El plan, las decisiones y el
 estado de cada fase están en [PLAN.md](PLAN.md).
 
-**Estado:** fase F0 (preparación). Todavía no hay código del agente.
+**Estado:** F0 lista; F1 por empezar. Todavía no hay código del agente. Para seguir desde otra PC: [docs/ARRANQUE-CASA.md](docs/ARRANQUE-CASA.md).
 
 ## Requisitos
 
@@ -20,7 +20,7 @@ estado de cada fase están en [PLAN.md](PLAN.md).
 
 1. Copia `.env.example` a `.env` (PowerShell: `Copy-Item .env.example .env`; bash: `cp .env.example .env`) y define
    `POSTGRES_PASSWORD`, sin caracteres `$` ni comillas. El archivo `.env` no se sube al repo.
-2. `docker compose up -d`
+2. `docker compose up -d --wait`
 3. `docker compose exec db psql -U gabinete -d gabinete -c "\dx"` debe listar la extensión `vector`.
 4. Para apagarla: `docker compose stop`. No se reinicia sola al abrir Docker Desktop.
 
@@ -40,11 +40,12 @@ Tus notas reales nunca deben ir ahí ni salir de tu máquina.
 ## Estructura
 
 ```
+AGENTS.md   instrucciones para asistentes de IA (Antigravity, etc.)
 .github/    flujo de integración continua
 packages/   harness, mcp_servers, rag, memory, evals (vacíos hasta F1)
 app/        CLI `gabinete` (vacío hasta F5)
 fixtures/   notas y calendario falsos + ground_truth.yaml
-scripts/    comprobaciones de los datos de prueba
+scripts/    comprobaciones de los datos de prueba y medición de hardware
 docker/     scripts de inicio de la base
-docs/       resúmenes de auditoría por fase
+docs/       guía de arranque, tareas de F1 y resúmenes de auditoría por fase
 ```

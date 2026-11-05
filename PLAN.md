@@ -20,7 +20,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 
 Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
 
-**Siguiente:** F1 (harness mínimo y 10 evals). El bucle del agente y los evals con un proveedor de prueba no dependen del hardware; el modelo local se elige cuando se conozca la PC de casa.
+**Siguiente:** F1 (harness mínimo y 10 evals). El bucle del agente y los evals con un proveedor de prueba no dependen del hardware; el modelo local se elige cuando se conozca la PC de casa. Tareas pequeñas en `docs/F1-tareas.md`; guía para seguir desde la PC de casa en `docs/ARRANQUE-CASA.md`; instrucciones para asistentes de IA en `AGENTS.md`.
 
 ## 2. Alcance
 
@@ -53,7 +53,7 @@ Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `dock
 | D7 | Harness: bucle propio sobre la API de mensajes con uso de herramientas, sin frameworks de agentes | decidida | Es parte del objetivo: entender y controlar el bucle. |
 | D8 | RAG: primero a mano (chunking, embeddings, búsqueda), luego comparar con LlamaIndex | propuesta | Aprender primero; medir después si el framework mejora. |
 | D9 | El harness habla con el modelo a través de una interfaz `LLMProvider` (sección 5); el bucle de herramientas sigue siendo propio (D7) | propuesta | Permite pasar de un modelo gratuito a otro (por ejemplo al agotarse una cuota) o a uno de pago sin reescribir el agente. |
-| D10 | **Privacidad:** los datos reales (notas, correo, calendario) solo pasan por modelos locales; las nubes gratuitas reciben únicamente los datos falsos de `fixtures/` | decidida | La página de precios de la API de Gemini indica que en el nivel gratuito el contenido se usa para mejorar los productos de Google (consultada el 2026-11-05). |
+| D10 | **Privacidad:** los datos reales (notas, correo, calendario) solo pasan por modelos locales; las nubes gratuitas reciben únicamente los datos falsos de `fixtures/` | regla vigente para el trabajo (las nubes solo ven datos falsos); falta confirmar con el usuario qué datos reales entran | La página de precios de la API de Gemini indica que en el nivel gratuito el contenido se usa para mejorar los productos de Google (consultada el 2026-11-05). |
 | D11 | **Ritmo:** sin límite de horas; el avance se mide por fases (sección 6), no por fechas | decidida (2026-11-05) | El usuario dispone del tiempo que necesite. Una fase termina cuando cumple su criterio de "listo". |
 
 ## 4. Estructura del repositorio
@@ -62,6 +62,7 @@ Hecho hasta ahora (F0): plan, repo privado en GitHub (`main` y `develop`), `dock
 AI/
 ├─ PLAN.md
 ├─ README.md
+├─ AGENTS.md                 # instrucciones para asistentes de IA (Antigravity, etc.)
 ├─ docker-compose.yml        # PostgreSQL + pgvector
 ├─ docker/initdb/            # scripts de inicio de la base (extensión vector)
 ├─ pyproject.toml
@@ -97,9 +98,10 @@ class MemoryStore:
     def forget(self, user_id: str, fact_id: str) -> None: ...
 
 # harness
-class Tool: name: str; schema: dict; requires_approval: bool
-def run(task: str, session_id: str, *, max_steps: int, max_cost_usd: float) -> RunResult: ...
-# RunResult: {answer, trajectory: list[ToolCall], cost_usd, steps}
+class Tool: spec: ToolSpec; fn: Callable[[dict], str]; requires_approval: bool
+def run(task, session_id, *, provider, tools, approve=deny_all, max_steps, max_cost_usd, log_dir=None) -> RunResult: ...
+# RunResult: {answer, trajectory: list[ToolCall], steps, cost_usd, stop_reason, run_id}
+# Firma completa y campos de los tipos: docs/F1-tareas.md (contrato mínimo).
 
 # proveedor de modelo (D9): un adaptador por proveedor (ollama, gemini, anthropic)
 class LLMProvider(Protocol):
@@ -122,6 +124,8 @@ Formato de caso de eval (YAML):
   esperado: { contiene: "Lima", no_contiene: "Cusco" }
   repeticiones: 5
 ```
+
+Los casos con proveedor falso añaden `guion` y, dentro de `esperado`, las claves `herramienta` y `max_pasos`; `contiene` y `no_contiene` aceptan listas (ver `docs/F1-tareas.md`).
 
 ## 6. Fases y criterio de "listo"
 
@@ -158,6 +162,7 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 
 - Cada agente trabaja en su rama y worktree (`feat/harness`, `feat/mcp-notes`, `feat/rag`, `feat/memory`, `feat/evals`), con `git fetch` y `git switch -c <rama> origin/develop` explícitos.
 - `main` solo recibe lo que tú probaste; el trabajo integrado vive en `develop`.
+- Si trabaja un solo asistente (por ejemplo Antigravity en la PC de casa), ese asistente integra a `develop`; nunca a `main`.
 - Ciclo por fase: construir → revisar (3 lentes) → corregir → integrar → informe.
 - El workflow multiagente `feature-pipeline.js` solo se usa si lo pides explícitamente o tienes ultracode activo.
 
@@ -179,6 +184,7 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 | La app se conectaría como superusuario de PostgreSQL (hoy solo existe el usuario administrador de la imagen) | En F3, crear un rol sin privilegios para el RAG y la memoria. |
 | La etiqueta `pgvector/pgvector:pg17` es mutable | Fijar el digest de la imagen antes de usar datos reales. |
 | La instrucción inyectada del fixture es muy obvia y mide poco | En F5, añadir variantes sutiles (en un evento de calendario, en un texto citado) para medir resistencia real. |
+| El asistente de IDE (Antigravity) envía a Google lo que lee (términos oficiales, consultados el 2026-11-05) | Notas reales fuera del repo y de la carpeta abierta en el IDE; los programas que las leen los ejecuta el usuario aparte, con modelo local (`docs/ARRANQUE-CASA.md`, sección 5). |
 
 ## 10. Reglas que no se negocian
 
@@ -197,7 +203,7 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 ## 12. Preguntas abiertas
 
 1. ¿Python o TypeScript para el núcleo? (D1) — F0 usa Python como propuesta; falta tu confirmación.
-2. ¿Tus notas están en Obsidian o en otra carpeta? (D3) — no urge hasta que quieras leer notas reales.
+2. ¿Tus notas están en Obsidian o en otra carpeta, y cuáles entran primero? (D3, D10) — protocolo en `docs/ARRANQUE-CASA.md`, sección 5; las notas reales no se leen hasta F2 o F3.
 3. ¿Qué hardware tiene la PC de casa (RAM, CPU, GPU)? Define qué modelos locales sirven.
 4. ¿El repo `jefe-de-gabinete` sigue privado o se hace público para tu perfil de GitHub y tu CV? Hoy es privado. Antes de publicarlo hay que elegir una licencia y revisar el historial (el 2026-11-05 no tenía secretos ni datos reales).
 5. ¿Te sirven la identidad de git (nombre de tu perfil de GitHub y correo noreply) y el nombre del repo `jefe-de-gabinete`? Se pueden cambiar antes de más commits.

@@ -45,3 +45,9 @@ runs/
 logs/
 traces/
 *.jsonl
+!tests/**/*.jsonl
+
+# Datos reales: nunca dentro del repo (este patrón es solo una red de seguridad)
+vault-real/
+notas-reales/
+data-real/
