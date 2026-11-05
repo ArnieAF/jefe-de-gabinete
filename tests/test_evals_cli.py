@@ -48,10 +48,10 @@ def en_tmp(monkeypatch, tmp_path):
     monkeypatch.delenv("GABINETE_LOG_DIR", raising=False)
 
 
-def correr(capsys, tmp_path: Path, *extra: str, run_id: str = "r1", out: Path | None = None):
+def correr(capsys, tmp_path: Path, *extra: str, run_id: str = "r1", out: Path | None = None, repo_root: Path | None = None):
     """Llama a main() con --out y --run-id explícitos. Devuelve (código, stdout, stderr)."""
     carpeta = out if out is not None else tmp_path / "out"
-    codigo = main(["--out", str(carpeta), "--run-id", run_id, *extra])
+    codigo = main(["--out", str(carpeta), "--run-id", run_id, *extra], repo_root=repo_root)
     capturado = capsys.readouterr()
     return codigo, capturado.out, capturado.err
 
@@ -293,7 +293,7 @@ def test_repetitions_invalido_es_error_de_uso(capsys, tmp_path, valor):
     assert not (tmp_path / "out").exists()
 
 
-@pytest.mark.parametrize("opcion", ["--out", "--notes-dir", "--repo-root", "--cases"])
+@pytest.mark.parametrize("opcion", ["--out", "--notes-dir", "--cases"])
 def test_rutas_vacias_son_error_de_uso(capsys, tmp_path, opcion):
     # Path("") es "." y escribiría o leería en el directorio actual sin que nadie lo pidiera
     argumentos = ["--run-id", "r1", opcion, ""]
@@ -313,11 +313,21 @@ def test_run_id_invalido_es_error_de_uso(capsys, tmp_path, run_id):
 def test_falta_la_carpeta_de_notas_o_el_calendario_es_2(capsys, tmp_path):
     falsa = tmp_path / "repo-falso"
     (falsa / "fixtures").mkdir(parents=True)  # sin vault ni calendar.json
-    codigo, _, errores = correr(capsys, tmp_path, "--repo-root", str(falsa))
+    codigo, _, errores = correr(capsys, tmp_path, repo_root=falsa)
     assert codigo == 2 and "notas" in errores
     (falsa / "fixtures" / "vault").mkdir()
-    codigo, _, errores = correr(capsys, tmp_path, "--repo-root", str(falsa), run_id="r2")
+    codigo, _, errores = correr(capsys, tmp_path, run_id="r2", repo_root=falsa)
     assert codigo == 2 and "calendar.json" in errores
+    assert not (tmp_path / "out").exists()
+
+
+def test_la_linea_de_comandos_no_ofrece_forma_de_redefinir_la_raiz_del_repo(capsys, tmp_path):
+    # Si se pudiera cambiar qué carpeta cuenta como `fixtures/`, el guardián D10 tendría un atajo desde la terminal.
+    reales = tmp_path / "notas-reales"
+    reales.mkdir()
+    codigo, salida, errores = correr(capsys, tmp_path, "--repo-root", str(tmp_path), "--notes-dir", str(reales))
+    assert codigo == 2 and "--repo-root" in errores
+    assert salida == ""
     assert not (tmp_path / "out").exists()
 
 

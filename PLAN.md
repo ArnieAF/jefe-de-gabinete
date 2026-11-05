@@ -10,7 +10,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | Fase | Contenido | Estado |
 |---|---|---|
 | F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en la PC de trabajo y en GitHub Actions; falta tu prueba en la PC de casa |
-| F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4, T6 y T7 hechas; faltan T5 (adaptadores de modelo: depende del hardware y la clave), T8 y T9 (ver `docs/F1-tareas.md`) |
+| F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4 y T6 a T8 hechas; faltan T5 (adaptadores de modelo: depende del hardware y la clave) y T9 (ver `docs/F1-tareas.md`) |
 | F2 | MCP de notas (solo lectura) | pendiente |
 | F3 | RAG sobre notas + evals de recuperación | pendiente |
 | F4 | Memoria con mem0 + evals de memoria | pendiente |
