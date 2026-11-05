@@ -37,6 +37,17 @@ Tus notas reales nunca deben ir ahí ni salir de tu máquina.
   pgvector con `docker compose`, en cada push o pull request a `main` y `develop`. Los repos privados
   tienen un monto mensual gratis de minutos de Actions; si se agota, los jobs se detienen.
 
+## Pruebas
+
+```powershell
+pip install pyyaml pytest
+pytest
+```
+
+El código no se instala: pytest encuentra `packages/harness` y `packages/evals` por la configuración de `pyproject.toml`. Para ejecutar
+algo con `python -m` desde la raíz (por ejemplo `python -m gabinete_evals`), define antes
+`$env:PYTHONPATH = "packages/harness;packages/evals"` (PowerShell) o `PYTHONPATH=packages/harness:packages/evals` (bash).
+
 ## Estructura
 
 ```
