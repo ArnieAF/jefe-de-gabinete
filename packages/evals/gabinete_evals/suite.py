@@ -10,6 +10,7 @@ from typing import Callable
 
 from gabinete_evals.cases import Case
 from gabinete_evals.graders import case_passed, grade
+from gabinete_harness.redact import scrub
 from gabinete_harness.types import RunResult
 
 ExecuteFn = Callable[[Case], RunResult]
@@ -49,11 +50,11 @@ def _run_once(case: Case, execute: ExecuteFn) -> tuple[bool, list[str]]:
     try:
         result = execute(case)
     except Exception as exc:  # noqa: BLE001 - una repetición rota cuenta como fallo y la suite sigue
-        return False, [f"excepción: {type(exc).__name__}: {_one_line(str(exc))}"]
+        return False, [f"excepción: {type(exc).__name__}: {_one_line(scrub(str(exc)))}"]
     try:
         checks = grade(case, result)
     except Exception as exc:  # noqa: BLE001 - p. ej. execute devolvió algo que no es un RunResult
-        return False, [f"error al calificar: {type(exc).__name__}: {_one_line(str(exc))}"]
+        return False, [f"error al calificar: {type(exc).__name__}: {_one_line(scrub(str(exc)))}"]
     if not checks:
         return False, ["sin criterios que calificar en 'esperado'"]
     return case_passed(checks), [f"{c.name}: {c.detail}" for c in checks if not c.passed]

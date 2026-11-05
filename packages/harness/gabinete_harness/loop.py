@@ -30,6 +30,7 @@ from pathlib import Path
 from typing import Callable
 
 from gabinete_harness.eventlog import EventLog, is_reserved_device_name, resolve_log_dir, truncate_text
+from gabinete_harness.redact import scrub
 from gabinete_harness.types import (
     ApprovalFn,
     LLMProvider,
@@ -77,7 +78,7 @@ def _show(value: object, limit: int = 60) -> str:
 
 def _safe_str(value: object) -> str:
     try:
-        return str(value)
+        return scrub(str(value))  # los textos de excepciones pueden traer URLs con claves: se limpian antes de recortarlos
     except Exception:  # un __str__ roto no debe tumbar el bucle
         return ""
 
@@ -273,6 +274,7 @@ def _drive(
         # El proveedor recibe copias: si altera la lista, los mensajes o las especificaciones, la corrida no se entera.
         messages, tool_specs = copy.deepcopy((state.messages, specs))
         response = _check_response(provider.chat(messages, tool_specs))
+        calls = copy.deepcopy(response.tool_calls)  # copia propia: el proveedor no puede alterar lo que se registra, aprueba y califica
         state.steps += 1
         step = state.steps
         step_cost, cost_is_reliable = _step_cost(response.usage)
@@ -281,22 +283,22 @@ def _drive(
             "model_response",
             step=step,
             text=response.text,
-            tool_calls=[{"id": c.id, "name": c.name, "arguments": c.arguments} for c in response.tool_calls],
+            tool_calls=[{"id": c.id, "name": c.name, "arguments": c.arguments} for c in calls],
             usage={
                 "input_tokens": response.usage.input_tokens,
                 "output_tokens": response.usage.output_tokens,
                 "cost_usd": response.usage.cost_usd,
             },
         )
-        state.messages.append(Message("assistant", content=response.text or "", tool_calls=list(response.tool_calls)))
+        state.messages.append(Message("assistant", content=response.text or "", tool_calls=list(calls)))
 
         if max_cost_usd > 0 and (not cost_is_reliable or state.cost > max_cost_usd):
             return _finish(log, state, run_id, "max_cost", None)  # sin ejecutar ninguna herramienta de esta respuesta
 
-        if not response.tool_calls:
+        if not calls:
             return _finish(log, state, run_id, "answer", response.text if response.text is not None else "")
 
-        for call in response.tool_calls:
+        for call in calls:
             state.trajectory.append(call)
             log.emit("tool_call", step=step, tool_call_id=call.id, name=call.name, arguments=call.arguments)
 

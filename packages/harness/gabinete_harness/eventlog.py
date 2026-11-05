@@ -25,6 +25,8 @@ import re
 from pathlib import Path
 from typing import Any
 
+from gabinete_harness.redact import scrub
+
 __all__ = [
     "DEFAULT_LOG_DIR",
     "LOG_DIR_ENV",
@@ -84,7 +86,7 @@ def _clean(value: Any, depth: int = 0) -> Any:
     """Convierte `value` en algo que `json.dumps` serialice sin error: recorta textos, evita NaN e infinitos y no se
     cae con objetos raros ni con estructuras circulares."""
     if isinstance(value, str):
-        return truncate_text(value)
+        return truncate_text(scrub(value))  # primero se limpian los secretos y luego se recorta: una clave no puede quedar cortada a medias
     if value is None or isinstance(value, (bool, int)):
         return value
     if isinstance(value, float):

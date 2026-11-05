@@ -284,7 +284,7 @@ def main(argv: list[str] | None = None, *, repo_root: Path | None = None) -> int
         _err("la carpeta de notas no existe o no es una carpeta (--notes-dir)")
         return EXIT_USAGE
     if not (repo_root / "fixtures" / "calendar.json").is_file():
-        _err("no se encuentra fixtures/calendar.json dentro de --repo-root")
+        _err("no se encuentra fixtures/calendar.json dentro de la raíz del repositorio")
         return EXIT_USAGE
 
     # 3. Casos

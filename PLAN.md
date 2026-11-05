@@ -10,7 +10,7 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | Fase | Contenido | Estado |
 |---|---|---|
 | F0 | Preparación: repo, estructura, Docker, vault de prueba | implementada y verificada (2026-11-05): `docker compose up` probado en la PC de trabajo y en GitHub Actions; falta tu prueba en la PC de casa |
-| F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4 y T6 a T8 hechas; faltan T5 (adaptadores de modelo: depende del hardware y la clave) y T9 (ver `docs/F1-tareas.md`) |
+| F1 | Harness mínimo + primeros 10 evals | en curso: T1 a T4 y T6 a T9 hechas (925 pruebas; CI en Linux y Windows); faltan T5 (adaptador de Ollama), T11 (CLI con proveedores reales) y T10 (Gemini, opcional); ver `docs/F1-tareas.md` |
 | F2 | MCP de notas (solo lectura) | pendiente |
 | F3 | RAG sobre notas + evals de recuperación | pendiente |
 | F4 | Memoria con mem0 + evals de memoria | pendiente |
@@ -18,9 +18,9 @@ Creado: 2026-11-04 · Última actualización: 2026-11-05
 | F6 | MCP de calendario y GitHub (lectura primero) | pendiente |
 | F7 | Post-MVP: correo, UI, ejecución programada | fuera del MVP |
 
-Hecho hasta ahora (F0): plan, repo en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. Todavía no hay código del agente.
+Hecho hasta ahora (F0): plan, repo en GitHub (`main` y `develop`), `docker-compose.yml` con pgvector, `.env.example`, 12 notas y 8 eventos falsos con su `ground_truth.yaml`, y GitHub Actions. **Verificado (ejecutado):** `docker compose up` deja la base sana y la extensión `vector` calcula distancias (PC de trabajo y CI); el verificador de fixtures pasa. **No verificado:** el arranque en la PC de casa. El núcleo del harness y de los evals (F1: T1 a T4 y T6 a T9) ya existe y tiene 925 pruebas; todavía no usa un modelo real.
 
-**Siguiente:** F1 (harness mínimo y 10 evals). El bucle del agente y los evals con un proveedor de prueba no dependen del hardware; el modelo local se elige cuando se conozca la PC de casa. Tareas pequeñas en `docs/F1-tareas.md`; guía para seguir desde la PC de casa en `docs/ARRANQUE-CASA.md`; instrucciones para asistentes de IA en `AGENTS.md`.
+**Siguiente:** T5 (adaptador de Ollama) y luego T11 (CLI con proveedores reales) para medir con un modelo real; el modelo local se elige según el hardware de la PC de casa. Tareas pequeñas en `docs/F1-tareas.md`; guía para seguir desde la PC de casa en `docs/ARRANQUE-CASA.md`; instrucciones para asistentes de IA en `AGENTS.md`.
 
 ## 2. Alcance
 
@@ -109,8 +109,10 @@ class LLMProvider(Protocol):
     name: str
     def chat(self, messages: list[Message], tools: list[ToolSpec] | None = None, *, max_tokens: int = 1024) -> LLMResponse: ...
 # LLMResponse: {text: str | None, tool_calls: list[ToolCall], usage: Usage}
-# Regla D10 en código (F1): el harness aborta al arrancar si el proveedor no es ollama y la carpeta
-# de notas no está dentro de fixtures/ (sin variable de escape); un eval de la capa seguridad lo comprueba.
+# Regla D10 en código: quien combine un proveedor con una carpeta de notas (hoy la CLI de evals; mañana la CLI `gabinete` y los
+# servidores de F2 a F5) debe llamar a check_data_policy(<name del proveedor ya instanciado>, notes_dir) ANTES de leer notas;
+# `run()` no lo hace por sí mismo. Solo name == "ollama" exacto puede leer fuera de fixtures/, y el adaptador solo se llama así si
+# su host es de este equipo y su modelo no es de la nube. Se verifica con pytest (test_policy, test_evals_cli), no con un eval.
 ```
 
 Reglas de herramientas MCP: nombres `dominio.accion` (`notes.search`, `calendar.list_events`); toda herramienta de escritura declara `requires_approval = True`.
@@ -186,6 +188,8 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 | La etiqueta `pgvector/pgvector:pg17` es mutable | Fijar el digest de la imagen antes de usar datos reales. |
 | La instrucción inyectada del fixture es muy obvia y mide poco | En F5, añadir variantes sutiles (en un evento de calendario, en un texto citado) para medir resistencia real. |
 | El asistente de IDE (Antigravity) envía a Google lo que lee (términos oficiales, consultados el 2026-11-05) | Notas reales fuera del repo y de la carpeta abierta en el IDE; los programas que las leen los ejecuta el usuario aparte, con modelo local (`docs/ARRANQUE-CASA.md`, sección 5). |
+| Un error de la API puede traer la URL con la clave | `scrub()` limpia secretos en registros, reportes y errores de herramientas; los adaptadores envían la clave en una cabecera, nunca en la URL (`docs/F1-tareas.md`, T10). |
+| "ollama" no siempre es local (host remoto o modelo en la nube) | El adaptador (T5) solo se llama "ollama" si host y modelo son locales; si no, "ollama-remoto", y el guardián D10 lo trata como nube. |
 
 ## 10. Reglas que no se negocian
 
@@ -216,3 +220,5 @@ Más dos transversales: **permisos** (no escribe sin aprobación) y **seguridad*
 | F0 (fixtures) | 12 notas y calendario falsos | Claude Haiku 5.5, agente `rol-mecanico` | Definición del agente (`model: haiku`) y trailer `Co-Authored-By` del commit. El entorno no devuelve el modelo real: no hay verificación independiente. |
 | F0 (infra y CI) | `docker-compose.yml`, `.env.example`, `.gitignore`, `pyproject.toml`, README, `ground_truth.yaml`, Actions, `verify_fixtures.py` y correcciones a las notas | Claude Sonnet 5.5 (orquestador) | Identificador indicado por el entorno de la sesión y trailer `Co-Authored-By`. |
 | F0 (auditoría) | Revisión con 3 lentes y verificación de hallazgos | Auditores pedidos como `model: 'fable'`; escépticos como `model: 'opus'` (agentes `rol-auditor`) | Parámetro `model` al lanzar el workflow `wf_0cfe4d9d-5d3`. No hay otra verificación del modelo real. |
+| F1 (código) | Tipos, ScriptedProvider, herramientas de juguete, bucle `run()`, registro, guardián D10, runner y CLI de evals, 10 casos | Claude Sonnet 5.5: agentes `rol-backend` (T2, T3, T4, T6, T7, T8) y el orquestador (T1, T9, correcciones) | Definición del agente (`model: sonnet`) y trailer `Co-Authored-By` de cada commit. El entorno no devuelve el modelo real: no hay verificación independiente. |
+| F1 (auditoría) | Revisión con 3 lentes y verificación de hallazgos (`docs/auditoria-f1.md`) | Auditores pedidos como `model: 'fable'`; escépticos como `model: 'opus'` (agentes `rol-auditor`) | Parámetro `model` al lanzar el workflow `wf_cb5c9752-b91`. No hay otra verificación del modelo real. |
