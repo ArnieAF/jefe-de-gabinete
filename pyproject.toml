@@ -1,9 +1,17 @@
-# Esqueleto de la fase F0: solo metadatos. Las dependencias y el empaquetado se definen en F1,
-# cuando exista código; hoy no hay nada que instalar.
+# Metadatos y configuración de pruebas. El código vive en packages/harness y packages/evals y se importa
+# sin instalar nada: pytest usa "pythonpath" y, para "python -m gabinete_evals", se define
+# PYTHONPATH=packages/harness;packages/evals (ver README).
 [project]
 name = "gabinete"
 version = "0.0.0"
 description = "Jefe de Gabinete Personal: agente de IA con MCP, RAG, memoria y evals"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["pyyaml>=6.0"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["packages/harness", "packages/evals"]

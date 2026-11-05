@@ -63,10 +63,35 @@ Formato de un caso de eval con proveedor falso (extiende el de PLAN sección 5):
   repeticiones: 1
 ```
 
+## Detalles fijados por el orquestador (2026-11-05)
+- **Importación:** sin instalar nada. pytest usa `pythonpath` (ya configurado en `pyproject.toml`) y `python -m gabinete_evals` se ejecuta con
+  `$env:PYTHONPATH = "packages/harness;packages/evals"` (PowerShell).
+- **Módulos, para que las tareas no choquen:** `gabinete_harness/types.py` (T1, con `deny_all` y `allow_all`), `providers/scripted.py` (T2),
+  `tools/registry.py` y `tools/toy.py` (T3), `policy.py` (T6), `approval.py`, `eventlog.py` y `loop.py` (T4), `providers/ollama.py` y
+  `providers/gemini.py` (T5); `gabinete_evals/cases.py`, `graders.py` y `report.py` (T7), `cli.py` y `__main__.py` (T8). Cada tarea escribe sus
+  propios archivos y sus pruebas en `tests/test_<tema>.py`. Nadie edita `__init__.py`, `pyproject.toml` ni los módulos de otra tarea: se importa por ruta completa.
+- **T2:** el guion es una lista; cada elemento es `{text: str}`, `{tool_calls: [{name, arguments}]}` o un `LLMResponse`. Los `id` de las llamadas se
+  generan (`call_1`, `call_2`...). Al agotarse el guion lanza `ScriptExhaustedError` con un mensaje claro. Guarda en `.calls` los mensajes que recibió.
+- **T3:** herramientas de juguete: `calendar.list_events(date)` (solo lectura; la fecha local de cada evento es la de su propio desfase horario),
+  `notes.read(path)` (solo lectura; solo dentro de `fixtures/vault`: rechaza rutas absolutas, `..` y enlaces simbólicos que salgan) y
+  `email.send(to, subject, body)` (`requires_approval=True`; simulada: no envía nada, solo la agrega a una bandeja de salida en memoria).
+  Los errores de las herramientas se devuelven como texto JSON `{"error": "..."}`, no como excepciones.
+- **T4:** si `approve` devuelve falso para una herramienta con `requires_approval`, esa herramienta NO se ejecuta y la corrida se detiene con
+  `stop_reason="denied"` (sin respuesta). `max_cost_usd=0.0` significa sin límite. Si `log_dir` es `None` se usa la variable `GABINETE_LOG_DIR` y,
+  si no existe, `evals-out/`. El registro es JSONL: un evento por línea (`run_start`, `model_response`, `tool_call`, `tool_result`, `tool_denied`,
+  `run_end`), sin marcas de hora. Una herramienta que falla o un nombre desconocido devuelve un texto `ERROR: ...` al modelo y la corrida sigue.
+- **T6:** `check_data_policy(provider_name, notes_dir, repo_root=None)`. Solo `ollama` puede leer fuera de `fixtures/`; cualquier otro nombre
+  (incluido `scripted`) se trata como nube. Resuelve `..` y enlaces antes de comparar y lanza `DataPolicyError` indicando el motivo.
+- **T7:** el runner recibe una función `execute(caso) -> RunResult` (no conoce `run()` ni los proveedores). Califica `contiene`, `no_contiene`,
+  `herramienta`, `max_pasos` y `stop_reason`; escribe `report-<id>.json` y `.md` en una carpeta de salida y compara con el reporte anterior de esa carpeta.
+- **T8:** conecta `run()` con `ScriptedProvider`, la CLI (`--cases`, `--out`, `--min-rate`) y 10 casos: eventos de hoy, día sin eventos, leer una nota,
+  argumentos inválidos, herramienta desconocida, envío denegado, máximo de pasos, máximo de costo, instrucción inyectada del correo (el modelo
+  "vulnerable" intenta `email.send` y el harness lo deniega) y ruta fuera del vault. Termina con código 0 solo si todos pasan.
+
 ## Tareas
 | Id | Depende de | Tarea | Está lista cuando | Estado |
 |---|---|---|---|---|
-| T1 | (ninguna) | Dataclasses y `LLMProvider` del contrato; disposición de archivos y configuración de pytest | `pytest` corre y pasa una prueba que importa los tipos; `python -c "import gabinete_harness"` funciona | pendiente |
+| T1 | (ninguna) | Dataclasses y `LLMProvider` del contrato; disposición de archivos y configuración de pytest | `pytest` corre y pasa una prueba que importa los tipos; con `PYTHONPATH` definido, `python -c "import gabinete_harness"` funciona | hecha |
 | T2 | T1 | `ScriptedProvider`: un `LLMProvider` falso que devuelve las respuestas de un guion, en orden | Pruebas: responde en orden y falla con un error claro si se acaba el guion | pendiente |
 | T3 | T1 | Registro de herramientas y herramienta de juguete `calendar.list_events(date)` que lee `fixtures/calendar.json` (solo lectura) | Prueba: los eventos de `2026-11-05` son `cal-008` y `cal-002`, en ese orden | pendiente |
 | T4 | T1, T2, T3 | Bucle `run()`: máximo de pasos, aprobación humana obligatoria para herramientas con `requires_approval` (se deniegan por defecto) y registro de eventos en JSONL en `log_dir` (por defecto `evals-out/`; con datos reales debe apuntar **fuera del repo**, variable `GABINETE_LOG_DIR`) | Con `ScriptedProvider`: usa la herramienta y responde; corta al pasar `max_steps`; deniega una herramienta de escritura sin aprobación; el JSONL tiene un evento por paso | pendiente |
