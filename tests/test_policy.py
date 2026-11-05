@@ -296,6 +296,22 @@ def test_una_ruta_relativa_se_interpreta_desde_el_directorio_actual(repo_falso: 
     assert _es_error("gemini", ".", repo_falso)
 
 
+@pytest.mark.parametrize("vacia", ["", "   ", "\t", None])
+def test_una_ruta_vacia_nunca_significa_el_directorio_actual(vacia: object, repo_falso: Path, monkeypatch):
+    """Aunque el directorio actual esté dentro de fixtures/, vacío no vale como "esta carpeta"."""
+    monkeypatch.chdir(repo_falso / "fixtures")
+    assert _es_error("gemini", vacia, repo_falso)
+
+
+def test_la_raiz_del_repo_se_resuelve_aunque_se_llegue_por_un_enlace(repo_falso: Path, tmp_path: Path):
+    atajo = tmp_path / "atajo-al-repo"
+    _enlazar(atajo, repo_falso)
+    assert check_data_policy("gemini", repo_falso / "fixtures" / "vault", atajo) is None
+    assert check_data_policy("gemini", atajo / "fixtures" / "vault", repo_falso) is None
+    assert check_data_policy("gemini", atajo / "fixtures" / "vault", atajo) is None
+    assert _es_error("gemini", atajo / "real", atajo)
+
+
 def test_un_objeto_pathlike_con_bytes_se_rechaza(repo_falso: Path):
     class RutaBytes:
         def __fspath__(self) -> bytes:
