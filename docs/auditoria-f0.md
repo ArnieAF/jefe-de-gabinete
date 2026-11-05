@@ -57,7 +57,7 @@ de qué hora acepta Valeria reuniones?") y se separaron Preferencias y Restricci
   dañada a propósito), `docker compose config`, `git check-ignore` sobre 11 nombres, y la lectura de `pyproject.toml` con `tomllib`.
 - **Ejecutado en GitHub Actions:** el pull request #1 pasó los dos jobs (fixtures y PostgreSQL con pgvector). Corrida:
   `github.com/ArnieAF/jefe-de-gabinete/actions/runs/42063951331`.
-- **Ejecutado en la PC de trabajo antes de la auditoría:** `docker compose up -d --wait` (base sana en 27 s, extensión
+- **Ejecutado en local antes de la auditoría:** `docker compose up -d --wait` (base sana en 27 s, extensión
   `vector` 0.8.7, distancia calculada, puerto solo en `127.0.0.1`) y limpieza completa.
 - **Afirmado por los auditores y verificado por un escéptico:** los 8 hallazgos medios.
 - **Afirmado por los auditores sin verificación independiente:** los 15 bajos y los comandos que dicen haber ejecutado.
@@ -68,7 +68,7 @@ de qué hora acepta Valeria reuniones?") y se separaron Preferencias y Restricci
 
 - **El modelo real de cada agente.** Solo consta el parámetro pedido al lanzarlos (`model: 'fable'` para los auditores y
   `model: 'opus'` para los escépticos); el entorno no devuelve el modelo efectivo.
-- **Las transcripciones de los auditores** viven en la carpeta de sesión de Claude Code de la PC de trabajo
+- **Las transcripciones de los auditores** viven en la carpeta de sesión de Claude Code de la computadora donde se hizo la auditoría
   (`subagents/workflows/wf_0cfe4d9d-5d3/`), no en este repositorio.
 - **El arranque en la PC de casa**: `docker compose up` no se ha probado ahí.
 - **Las cuotas gratuitas y el rendimiento de modelos pequeños** que mencionan PLAN §9 y `.env.example`: siguen sin medirse.

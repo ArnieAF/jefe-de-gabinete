@@ -33,4 +33,4 @@ Añadido a raíz del hallazgo: los registros de ejecuciones con datos reales deb
 ## Qué no tiene registro
 - **Ninguna prueba dentro de Antigravity:** que lea `AGENTS.md` está confirmado solo por su documentación, no se probó. Tampoco se probaron el mensaje para pegar ni el comportamiento de un modelo gratuito con estas instrucciones.
 - **El modelo real del revisor**: solo consta el parámetro pedido al lanzarlo.
-- **La transcripción del revisor** está en la carpeta de sesión de Claude Code de la PC de trabajo, no en el repositorio.
+- **La transcripción del revisor** está en la carpeta de sesión de Claude Code de la computadora donde se hizo la revisión, no en el repositorio.

@@ -44,6 +44,6 @@ lo intentó refutar un segundo modelo (pedido como Opus). En total, 15 agentes, 
 
 ## Qué no tiene registro
 - El modelo real de cada agente: solo consta el parámetro pedido al lanzarlos.
-- Las transcripciones de los auditores, que viven en la carpeta de sesión de Claude Code de la PC de trabajo y no en este repositorio.
+- Las transcripciones de los auditores, que viven en la carpeta de sesión de Claude Code de la computadora donde se hizo la auditoría y no en este repositorio.
 - Cualquier prueba con un modelo real o con Antigravity: los adaptadores de modelo aún no existen.
 - El CI de GitHub con estas correcciones: se confirma tras el push.
