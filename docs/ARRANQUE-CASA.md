@@ -4,7 +4,7 @@ Pensado para empezar sin pagar nada y con tu asistente de IA de siempre (Antigra
 
 ## 1. Instalar lo que falta
 - **Git**, **Python 3.12** y **Docker Desktop** (en Windows usa WSL2; cuánta RAM consume en tu PC no está medido).
-- **Ollama** puede esperar: se necesita para la tarea F1-T5, no para empezar.
+- **Ollama** (instálalo desde su sitio oficial, ollama.com): lo necesita la tarea T5, que es la siguiente. El modelo concreto se elige según tu hardware: tu asistente lo propondrá y lo verificará en la documentación oficial.
 
 ## 2. Bajar el proyecto y comprobar que arranca
 ```powershell
@@ -22,6 +22,9 @@ python -m venv .venv                                              # usa Python 3
 .\.venv\Scripts\Activate.ps1                                      # si PowerShell lo bloquea: Set-ExecutionPolicy -Scope CurrentUser RemoteSigned
 pip install pyyaml pytest
 python scripts/verify_fixtures.py .                               # debe terminar con "fixtures OK"
+pytest                                                            # debe terminar con "passed" (en Windows se omiten algunas pruebas: es lo esperado)
+$env:PYTHONPATH = "packages/harness;packages/evals"
+python -m gabinete_evals --out "$env:TEMP\evals-out"              # debe terminar con "Tasa total: 10/10 ... APROBADO"
 ```
 El repo es público: clonar no pide iniciar sesión. Para subir cambios (`git push`) sí te pedirá iniciar sesión en GitHub con la cuenta `ArnieAF`.
 
@@ -41,12 +44,12 @@ del proyecto. Pega este mensaje, con la salida del paso 3 donde dice `<hardware>
 ```
 Estoy en mi PC de casa, sin GPU y sin pagar nada. Lee AGENTS.md, docs/F1-tareas.md y PLAN.md (secciones 1, 5 y 6).
 Mi hardware es: <hardware>. Anótalo en PLAN.md, sección 12, pregunta 3.
-Haz SOLO la tarea T1 (después seguimos con T2, T3...). Rama feat/f1-t1 desde develop, commits pequeños con push después de cada uno,
+Haz SOLO la primera tarea con estado pendiente de docs/F1-tareas.md (hoy, T5). Rama feat/f1-t5 desde develop, commits pequeños con push después de cada uno,
 verifica ejecutando las pruebas, y si pasan únela a develop con --no-ff y sube develop. No toques main ni mis datos reales.
 ```
 
 Si se acaban los tokens gratuitos a mitad de una tarea, no pasa nada: lo hecho está en commits subidos y `docs/F1-tareas.md` dice qué sigue.
-Mañana, o con otro modelo, se pega el mismo mensaje cambiando el número de tarea.
+Mañana, o con otro modelo, se pega el mismo mensaje: siempre toma la primera tarea pendiente.
 
 No pude verificar si Antigravity respeta `.gitignore` o si tiene una forma de excluir archivos de su contexto: revísalo en su documentación o en sus
 ajustes. Mientras tanto, evita abrir `.env` en el IDE.
@@ -64,7 +67,7 @@ parecido (su página de precios indica que el contenido se usa para mejorar prod
 2. Empieza con 5 a 15 notas poco sensibles (proyectos, pendientes, aprendizaje). Deja fuera finanzas, salud, claves, datos de otras personas y trabajo confidencial.
 3. Los programas que lean esas notas los ejecutas **tú**, en una terminal aparte (no el asistente), con un modelo **local**, y no pegas sus resultados en el chat del asistente.
 4. Los registros de esas ejecuciones también van fuera del repo (variable `GABINETE_LOG_DIR`, tarea T4).
-5. No se ejecuta nada con datos reales hasta que exista el guardián de la tarea F1-T6.
+5. El guardián de privacidad (tarea T6) ya existe y la CLI de evals lo ejecuta antes que nada. Aun así, nada lee notas reales hasta F2 y F3, y cuando lo haga lo ejecutas tú en una terminal aparte.
 6. Los modelos gratuitos en la nube solo ven los datos falsos de `fixtures/`.
 
 **Cuándo:** lo primero que lee notas es F2 (servidor MCP de notas) y F3 (RAG). Mañana todavía no hay nada que use datos reales:
